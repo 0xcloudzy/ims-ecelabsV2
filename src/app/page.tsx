@@ -1,69 +1,95 @@
 import Image from "next/image";
 
-export default function Home() {
+export default function LoginPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+    <main className="min-h-screen bg-[#eef4f4] text-slate-950 lg:grid lg:grid-cols-[minmax(0,1.08fr)_minmax(440px,0.92fr)]">
+      <section className="relative hidden min-h-screen overflow-hidden bg-[#022742] lg:block">
         <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
+          src="/brand/ece-banner.jpg"
+          alt="ECE lab workspace at IIIT-Delhi"
+          fill
           priority
+          sizes="58vw"
+          className="object-cover"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+        <div className="absolute inset-0 bg-[#022742]/82" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px)] bg-[size:34px_34px]" />
+
+        <div className="relative flex min-h-screen flex-col justify-between px-16 py-14 text-white">
+          <div>
+            <Image
+              src="/brand/iiitd-logo.png"
+              alt="IIIT-Delhi"
+              width={278}
+              height={110}
+              priority
+              className="h-auto w-48 brightness-0 invert"
+            />
+          </div>
+
+          <div className="max-w-2xl">
+            <h1 className="text-6xl font-semibold leading-[1.05] tracking-tight">
+              Lab Inventory Management System
+            </h1>
+            <p className="mt-6 max-w-xl text-lg leading-8 text-slate-100">
+              A central access point for ECE lab equipment requests, approvals,
+              returns, and dues clearance.
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between border-t border-white/20 pt-8 text-sm text-slate-200">
+            <span>Authorized IIITD access only</span>
+            <span>ECE Labs</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="flex min-h-screen items-center justify-center px-6 py-10">
+        <div className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-8 shadow-xl shadow-slate-300/60">
+          <Image
+            src="/brand/iiitd-logo.png"
+            alt="IIIT-Delhi"
+            width={278}
+            height={110}
+            priority
+            className="h-auto w-44"
+          />
+
+          <h1 className="mt-10 text-3xl font-semibold tracking-tight text-[#1f2933]">
+            Sign in
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            Continue with your institute Google account to access the ECE Lab
+            IMS.
+          </p>
+
+          <a
+            href="/api/auth/signin/google"
+            className="mt-8 flex h-12 w-full items-center justify-center gap-3 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900 transition hover:border-[#3fada8] hover:bg-[#f7fbfb] focus:outline-none focus:ring-2 focus:ring-[#3fada8] focus:ring-offset-2"
+          >
+            <span className="text-lg font-bold text-[#4285f4]">G</span>
+            Sign in with Google
+          </a>
+
+          <p className="mt-4 text-center text-xs leading-5 text-slate-500">
+            Only @iiitd.ac.in accounts are accepted.
+          </p>
+
+          <div className="mt-8 border-t border-slate-200 pt-6">
+            <p className="text-sm font-medium text-slate-900">
+              Your workspace is selected automatically.
+            </p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Your approved database role determines which dashboard opens
+              after sign-in.
+            </p>
+          </div>
+
+          <p className="mt-8 text-xs text-slate-400">
+            Electronics and Communications Engineering, IIIT-Delhi
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </section>
+    </main>
   );
 }
