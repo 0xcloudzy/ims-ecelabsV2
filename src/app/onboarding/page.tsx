@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { saveOnboardingProfile } from "@/app/onboarding/actions";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 
@@ -7,7 +8,7 @@ const departments = [
   { value: "cb", label: "CB" },
   { value: "mathematics", label: "Mathematics" },
   { value: "design", label: "Design" },
-  { value: "electronics", label: "Electronics" },
+  { value: "ece", label: "ECE" },
   { value: "ssh", label: "SSH" },
 ];
 
@@ -18,9 +19,25 @@ const programmes = [
   { value: "organisation", label: "Organisation" },
 ];
 
-export default async function OnboardingPage() {
+const onboardingErrorMessages: Record<string, string> = {
+  "invalid-profile": "Please check all fields and select a valid department and programme.",
+  "save-failed": "We could not save your profile. Please try again in a moment.",
+  "duplicate-profile": "This email or roll number is already linked to a profile.",
+};
+
+type OnboardingPageProps = {
+  searchParams?: Promise<{
+    error?: string;
+  }>;
+};
+
+export default async function OnboardingPage({ searchParams }: OnboardingPageProps) {
   const session = await auth();
+  const params = await searchParams;
   const email = session?.user?.email;
+  const errorMessage = params?.error
+    ? (onboardingErrorMessages[params.error] ?? "Something went wrong. Please try again.")
+    : null;
 
   if (!email) {
     redirect("/");
@@ -89,7 +106,16 @@ export default async function OnboardingPage() {
               Complete your profile
             </h1>
 
-            <form className="mt-4 grid gap-3">
+            {errorMessage ? (
+              <div
+                role="alert"
+                className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+              >
+                {errorMessage}
+              </div>
+            ) : null}
+
+            <form action={saveOnboardingProfile} className="mt-4 grid gap-3">
               <div>
                 <label className="text-xs font-medium text-slate-700" htmlFor="email">
                   Institute email
@@ -193,8 +219,7 @@ export default async function OnboardingPage() {
 
               <button
                 type="submit"
-                disabled
-                className="mt-1 h-9 rounded-md bg-slate-300 px-4 text-sm font-semibold text-slate-600"
+                className="mt-1 h-9 rounded-md bg-[#022742] px-4 text-sm font-semibold text-white transition hover:bg-[#064463] focus:outline-none focus:ring-2 focus:ring-[#3fada8] focus:ring-offset-2"
               >
                 Save profile
               </button>

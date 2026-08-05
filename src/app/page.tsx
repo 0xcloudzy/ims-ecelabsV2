@@ -1,5 +1,7 @@
 import Image from "next/image";
 import { auth, signIn } from "@/auth";
+import { connectToDatabase } from "@/db/connect";
+import { User } from "@/db/models/user";
 import { classifyUserEmail } from "@/lib/auth/user-classification";
 import { redirect } from "next/navigation";
 
@@ -34,6 +36,14 @@ export default async function LoginPage() {
     const classifiedUser = classifyUserEmail(email);
 
     if (classifiedUser.status === "student") {
+      await connectToDatabase();
+
+      const existingUser = await User.exists({ email: classifiedUser.email });
+
+      if (existingUser) {
+        redirect("/student");
+      }
+
       redirect("/onboarding");
     }
 
