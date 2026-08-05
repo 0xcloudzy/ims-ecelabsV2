@@ -1,3 +1,4 @@
+import { signIn } from "@/auth";
 import Image from "next/image";
 
 function GoogleIcon() {
@@ -83,13 +84,20 @@ export default function LoginPage() {
               className="mx-auto h-auto w-full max-w-[320px]"
             />
 
-            <a
-              href="/api/auth/signin/google"
-              className="mt-8 flex h-12 w-full items-center justify-center gap-3 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#3fada8] focus:ring-offset-2"
+            <form
+              action={async () => {
+                "use server";
+                await signIn("google");
+              }}
             >
-              <GoogleIcon />
-              Sign in with Google
-            </a>
+              <button
+                type="submit"
+                className="mt-8 flex h-12 w-full items-center justify-center gap-3 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#3fada8] focus:ring-offset-2"
+              >
+                <GoogleIcon />
+                Sign in with Google
+              </button>
+            </form>
 
             <p className="mt-4 text-center text-xs leading-5 text-slate-500">
               Only @iiitd.ac.in accounts are accepted.
