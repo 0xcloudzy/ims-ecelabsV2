@@ -1,5 +1,7 @@
-import { signIn } from "@/auth";
 import Image from "next/image";
+import { auth, signIn } from "@/auth";
+import { classifyUserEmail } from "@/lib/auth/user-classification";
+import { redirect } from "next/navigation";
 
 function GoogleIcon() {
   return (
@@ -24,7 +26,29 @@ function GoogleIcon() {
   );
 }
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const session = await auth();
+  const email = session?.user?.email;
+
+  if (email) {
+    const classifiedUser = classifyUserEmail(email);
+
+    if (classifiedUser.status === "student") {
+      redirect("/onboarding");
+    }
+
+    if (classifiedUser.status === "staff") {
+      if (classifiedUser.role === "lab_admin") {
+        redirect("/admin");
+      }
+
+      if (classifiedUser.role === "faculty_owner") {
+        redirect("/owner");
+      }
+    }
+
+    redirect("/unauthorized");
+  }
   return (
     <main className="min-h-screen bg-[#eef4f4] text-slate-950 lg:grid lg:grid-cols-[minmax(0,0.98fr)_minmax(430px,0.72fr)]">
       <section className="relative hidden min-h-screen overflow-hidden bg-[#022742] lg:block">
