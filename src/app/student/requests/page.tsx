@@ -101,7 +101,7 @@ export default async function StudentRequestsPage() {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left text-sm">
-            <thead className="bg-[#319f9a] text-white">
+            <thead className="bg-[#022742] text-white">
               <tr>
                 <th className="px-4 py-3 font-semibold">S.No</th>
                 <th className="px-4 py-3 font-semibold">Equipment Name</th>
@@ -143,7 +143,7 @@ export default async function StudentRequestsPage() {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="bg-[#319f9a] text-white">
+            <thead className="bg-[#022742] text-white">
               <tr>
                 <th className="px-4 py-3 font-semibold">S.No</th>
                 <th className="px-4 py-3 font-semibold">Equipment Name</th>

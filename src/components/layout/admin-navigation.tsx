@@ -114,10 +114,10 @@ export function AdminNavigation({ items, variant }: AdminNavigationProps) {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex min-h-12 items-center gap-3 border-l-4 px-4 text-sm font-semibold transition ${
+            className={`flex min-h-12 items-center gap-3 rounded-md px-4 text-sm font-semibold transition ${
               isActive
-                ? "border-white bg-white/16 text-white shadow-sm"
-                : "border-transparent text-white/86 hover:border-white/40 hover:bg-white/10 hover:text-white"
+                ? "bg-white/16 text-white shadow-sm"
+                : "text-white/86 hover:bg-white/10 hover:text-white"
             }`}
           >
             <span className="grid h-8 w-8 place-items-center rounded-md bg-white/12 text-white">

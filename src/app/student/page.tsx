@@ -94,7 +94,7 @@ export default async function StudentPage() {
             <h1 className="text-3xl font-semibold tracking-tight text-[#1f2933]">Dashboard</h1>
             <p className="mt-2 text-sm text-slate-600">Signed in as {user.email}</p>
           </div>
-          <div className="rounded-md bg-[#e6f6f5] px-3 py-2 text-sm font-semibold text-[#247f7b]">
+          <div className="rounded-md bg-[#e8edf4] px-3 py-2 text-sm font-semibold text-[#1e3a5f]">
             {user.studentProfile?.department?.toUpperCase()} / {user.studentProfile?.programme?.toUpperCase()}
           </div>
         </div>
@@ -115,7 +115,7 @@ export default async function StudentPage() {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="bg-[#319f9a] text-white">
+            <thead className="bg-[#022742] text-white">
               <tr>
                 <th className="px-4 py-3 font-semibold">S.No</th>
                 <th className="px-4 py-3 font-semibold">Equipment Name</th>
@@ -157,7 +157,7 @@ export default async function StudentPage() {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[680px] text-left text-sm">
-            <thead className="bg-[#319f9a] text-white">
+            <thead className="bg-[#022742] text-white">
               <tr>
                 <th className="px-4 py-3 font-semibold">S.No</th>
                 <th className="px-4 py-3 font-semibold">Equipment Name</th>

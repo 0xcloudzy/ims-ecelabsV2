@@ -69,11 +69,11 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       <div className="flex min-h-[calc(100vh-5rem)]">
         <aside className="hidden w-64 shrink-0 border-r border-[#1e3a5f] bg-[#022742] lg:block">
           <div className="sticky top-20 flex h-[calc(100vh-5rem)] flex-col">
-            <div className="border-b border-white/10 p-3">
+            <div className="mx-auto w-[90%] border-b border-white/10 p-3">
               <AdminNavigation items={[...navigationItems]} variant="sidebar" />
             </div>
 
-            <div className="mt-auto border-t border-white/10 p-3">
+            <div className="mx-auto mt-auto w-[90%] border-t border-white/10 p-3">
               <div className="rounded-md border border-white/15 bg-white/8 p-4 text-white">
                 <div className="flex items-center gap-3">
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-white/18 text-base font-semibold">

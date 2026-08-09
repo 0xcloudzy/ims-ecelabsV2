@@ -67,7 +67,7 @@ export function StudentNavigation({ items, variant }: StudentNavigationProps) {
               href={item.href}
               className={`flex whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold transition ${
                 isActive
-                  ? "bg-[#e6f6f5] text-[#247f7b]"
+                  ? "bg-[#e8edf4] text-[#1e3a5f]"
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               }`}
             >
@@ -88,10 +88,10 @@ export function StudentNavigation({ items, variant }: StudentNavigationProps) {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex min-h-12 items-center gap-3 border-l-4 px-4 text-sm font-semibold transition ${
+            className={`flex min-h-12 items-center gap-3 rounded-md px-4 text-sm font-semibold transition ${
               isActive
-                ? "border-white bg-white/16 text-white shadow-sm"
-                : "border-transparent text-white/86 hover:border-white/40 hover:bg-white/10 hover:text-white"
+                ? "bg-white/16 text-white shadow-sm"
+                : "text-white/86 hover:bg-white/10 hover:text-white"
             }`}
           >
             <span className="grid h-8 w-8 place-items-center rounded-md bg-white/12 text-white">

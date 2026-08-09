@@ -133,7 +133,7 @@ export default async function StudentEquipmentPage({ searchParams }: EquipmentPa
       <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1060px] text-left text-sm">
-            <thead className="bg-[#319f9a] text-white">
+            <thead className="bg-[#022742] text-white">
               <tr>
                 <th className="w-16 px-4 py-3 font-semibold">ID</th>
                 <th className="px-4 py-3 font-semibold">Equipment Name</th>

@@ -56,13 +56,13 @@ export default async function StudentLayout({ children }: { children: ReactNode 
       </header>
 
       <div className="flex min-h-[calc(100vh-5rem)]">
-        <aside className="hidden w-64 shrink-0 border-r border-[#2eaaa4] bg-[#37aaa5] lg:block">
+        <aside className="hidden w-64 shrink-0 border-r border-[#1e3a5f] bg-[#022742] lg:block">
           <div className="sticky top-20 flex h-[calc(100vh-5rem)] flex-col">
-            <div className="border-b border-white/20 p-3">
+            <div className="mx-auto w-[90%] border-b border-white/10 p-3">
               <StudentNavigation items={[...navigationItems]} variant="sidebar" />
             </div>
 
-            <div className="mt-auto border-t border-white/20 p-3">
+            <div className="mx-auto mt-auto w-[90%] border-t border-white/10 p-3">
               <StudentNavigation items={[...profileNavigationItem]} variant="sidebar" />
             </div>
           </div>
