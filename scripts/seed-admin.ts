@@ -32,6 +32,11 @@ const ADMINS: AdminSeed[] = [
     name: "Abhishek Kumar",
     labCode: "303",
   },
+  {
+    email: "siddharth25492@iiitd.ac.in",
+    name: "Siddharth Sharma",
+    labCode: "301",
+  },
 ];
 
 async function main() {

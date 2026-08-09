@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { connectToDatabase } from "@/db/connect";
 import { User } from "@/db/models/user";
+import { Lab } from "@/db/models/lab"; // Required for populate("assignedLab")
 import { redirect } from "next/navigation";
 
 export type CurrentAppUser = {
@@ -63,7 +64,7 @@ export async function requireAdminUser() {
   await connectToDatabase();
 
   const user = await User.findOne({ email })
-    .populate("assignedLab", "name code slug")
+    .populate({ path: "assignedLab", model: Lab, select: "name code slug" })
     .lean<
       CurrentAppUser & {
         assignedLab?: { _id: string; name: string; code: string; slug: string };

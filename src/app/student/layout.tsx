@@ -64,17 +64,6 @@ export default async function StudentLayout({ children }: { children: ReactNode 
 
             <div className="mt-auto border-t border-white/20 p-3">
               <StudentNavigation items={[...profileNavigationItem]} variant="sidebar" />
-              <div className="mt-3 rounded-md border border-white/20 bg-white/10 p-4 text-white">
-                <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-white/18 text-base font-semibold">
-                    {user.name.slice(0, 1).toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold">{user.name}</p>
-                    <p className="mt-0.5 text-xs text-white/75">{user.studentProfile?.rollNumber}</p>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </aside>
