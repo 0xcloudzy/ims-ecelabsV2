@@ -1,5 +1,7 @@
 import { isAllowedInstituteEmail } from "@/lib/auth/email-domain";
 import type { UserRole } from "@/lib/auth/roles";
+import { connectToDatabase } from "@/db/connect";
+import { User } from "@/db/models/user";
 
 type StaffRole = Exclude<UserRole, "student">;
 
@@ -19,14 +21,12 @@ export type ClassifiedUser =
       email: string;
     };
 
-const PRE_APPROVED_STAFF: Record<string, StaffRole> = {
-  // Temporary allowlist until this moves into MongoDB.
-  // Example:
-  // "faculty.email@iiitd.ac.in": "faculty_owner",
-  // "lab.incharge@iiitd.ac.in": "lab_admin",
-};
-
-export function classifyUserEmail(email: string): ClassifiedUser {
+/**
+ * Classify a user by email. Checks the database for existing staff records
+ * (lab_admin, faculty_owner). If no staff record exists and the domain is
+ * valid, the user is treated as a student.
+ */
+export async function classifyUserEmail(email: string): Promise<ClassifiedUser> {
   const normalizedEmail = email.trim().toLowerCase();
 
   if (!isAllowedInstituteEmail(normalizedEmail)) {
@@ -36,12 +36,17 @@ export function classifyUserEmail(email: string): ClassifiedUser {
     };
   }
 
-  const staffRole = PRE_APPROVED_STAFF[normalizedEmail];
+  await connectToDatabase();
 
-  if (staffRole) {
+  const existingUser = await User.findOne(
+    { email: normalizedEmail },
+    { role: 1 },
+  ).lean<{ role: string } | null>();
+
+  if (existingUser && (existingUser.role === "lab_admin" || existingUser.role === "faculty_owner")) {
     return {
       status: "staff",
-      role: staffRole,
+      role: existingUser.role as StaffRole,
       email: normalizedEmail,
     };
   }

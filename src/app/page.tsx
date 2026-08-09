@@ -1,6 +1,5 @@
 import Image from "next/image";
 import { auth, signIn } from "@/auth";
-import { connectToDatabase } from "@/db/connect";
 import { User } from "@/db/models/user";
 import { classifyUserEmail } from "@/lib/auth/user-classification";
 import { redirect } from "next/navigation";
@@ -33,31 +32,45 @@ export default async function LoginPage() {
   const email = session?.user?.email;
 
   if (email) {
-    const classifiedUser = classifyUserEmail(email);
+    try {
+      const classifiedUser = await classifyUserEmail(email);
 
-    if (classifiedUser.status === "student") {
-      await connectToDatabase();
+      if (classifiedUser.status === "student") {
+        const existingUser = await User.exists({ email: classifiedUser.email });
 
-      const existingUser = await User.exists({ email: classifiedUser.email });
+        if (existingUser) {
+          redirect("/student");
+        }
 
-      if (existingUser) {
-        redirect("/student");
+        redirect("/onboarding");
       }
 
-      redirect("/onboarding");
+      if (classifiedUser.status === "staff") {
+        if (classifiedUser.role === "lab_admin") {
+          redirect("/admin");
+        }
+
+        if (classifiedUser.role === "faculty_owner") {
+          redirect("/owner");
+        }
+      }
+
+      redirect("/unauthorized");
+    } catch (error) {
+      // redirect() throws internally — let it propagate
+      const isRedirect =
+        error instanceof Error &&
+        "digest" in error &&
+        typeof (error as { digest?: string }).digest === "string" &&
+        (error as { digest: string }).digest.startsWith("NEXT_REDIRECT");
+
+      if (isRedirect) {
+        throw error;
+      }
+
+      console.error("[login] classification failed, showing login page:", error);
+      // Fall through to render the login form
     }
-
-    if (classifiedUser.status === "staff") {
-      if (classifiedUser.role === "lab_admin") {
-        redirect("/admin");
-      }
-
-      if (classifiedUser.role === "faculty_owner") {
-        redirect("/owner");
-      }
-    }
-
-    redirect("/unauthorized");
   }
   return (
     <main className="min-h-screen bg-[#eef4f4] text-slate-950 lg:grid lg:grid-cols-[minmax(0,0.98fr)_minmax(430px,0.72fr)]">

@@ -1,4 +1,4 @@
-import { model, models, Schema } from "mongoose";
+import { model, models, Schema, Types } from "mongoose";
 import { USER_ROLES } from "@/lib/auth/roles";
 
 export const DEPARTMENTS = [
@@ -14,6 +14,32 @@ export const PROGRAMMES = ["btech", "mtech", "phd", "organisation"] as const;
 
 export type Department = (typeof DEPARTMENTS)[number];
 export type Programme = (typeof PROGRAMMES)[number];
+
+const studentProfileSchema = new Schema(
+  {
+    rollNumber: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    department: {
+      type: String,
+      enum: DEPARTMENTS,
+      required: true,
+    },
+    programme: {
+      type: String,
+      enum: PROGRAMMES,
+      required: true,
+    },
+    phoneNumber: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+  },
+  { _id: false },
+);
 
 const userSchema = new Schema(
   {
@@ -44,26 +70,13 @@ const userSchema = new Schema(
       default: true,
     },
     studentProfile: {
-      rollNumber: {
-        type: String,
-        required: true,
-        trim: true,
-      },
-      department: {
-        type: String,
-        enum: DEPARTMENTS,
-        required: true,
-      },
-      programme: {
-        type: String,
-        enum: PROGRAMMES,
-        required: true,
-      },
-      phoneNumber: {
-        type: String,
-        required: true,
-        trim: true,
-      },
+      type: studentProfileSchema,
+      default: undefined,
+    },
+    assignedLab: {
+      type: Types.ObjectId,
+      ref: "Lab",
+      default: undefined,
     },
   },
   {
