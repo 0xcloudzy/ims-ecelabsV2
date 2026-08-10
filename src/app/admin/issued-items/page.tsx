@@ -27,8 +27,12 @@ function isOverdue(dueDate?: Date) {
   return new Date(dueDate) < new Date();
 }
 
-export default async function AdminIssuedItemsPage() {
+export default async function AdminIssuedItemsPage(
+  props: { searchParams?: Promise<{ q?: string }> }
+) {
   const user = await requireAdminUser();
+  const searchParams = await props.searchParams;
+  const q = searchParams?.q?.toLowerCase() || "";
 
   const labId = typeof user.assignedLab === "object" && user.assignedLab !== null
     ? String((user.assignedLab as { _id: string })._id)
@@ -43,18 +47,47 @@ export default async function AdminIssuedItemsPage() {
     .sort({ dueDate: 1 })
     .lean<IssuedItem[]>();
 
+  const filteredItems = issuedItems.filter(item => {
+    if (!q) return true;
+    const sName = item.student?.name?.toLowerCase() || "";
+    const sEmail = item.student?.email?.toLowerCase() || "";
+    const eName = item.equipment?.name?.toLowerCase() || "";
+    return sName.includes(q) || sEmail.includes(q) || eName.includes(q);
+  });
+
   return (
     <section className="space-y-6">
-      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#319f9a]">
-          Issued Items
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[#1f2933]">
-          Currently Issued Equipment
-        </h1>
-        <p className="mt-2 text-sm text-slate-600">
-          {issuedItems.length} item{issuedItems.length !== 1 ? "s" : ""} currently out with students
-        </p>
+      <div className="flex flex-col justify-between gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm md:flex-row md:items-end">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#319f9a]">
+            Issued Items
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[#1f2933]">
+            Currently Issued Equipment
+          </h1>
+          <p className="mt-2 text-sm text-slate-600">
+            {filteredItems.length} item{filteredItems.length !== 1 ? "s" : ""} currently out with students
+          </p>
+        </div>
+
+        <form className="flex w-full flex-col gap-3 sm:flex-row xl:w-auto" action="/admin/issued-items">
+          <label className="flex flex-1 items-center gap-2 sm:min-w-[320px] xl:flex-none">
+            <span className="sr-only">Search</span>
+            <input
+              name="q"
+              type="search"
+              defaultValue={q}
+              placeholder="Search by student or equipment..."
+              className="h-11 min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-[#319f9a] focus:ring-2 focus:ring-[#319f9a]/20"
+            />
+          </label>
+          <button
+            type="submit"
+            className="rounded-md bg-[#022742] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#064463]"
+          >
+            Search
+          </button>
+        </form>
       </div>
 
       <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -72,14 +105,14 @@ export default async function AdminIssuedItemsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {issuedItems.length === 0 ? (
+              {filteredItems.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-500">
-                    No equipment is currently issued to any student.
+                    No issued items match your search.
                   </td>
                 </tr>
               ) : (
-                issuedItems.map((item, i) => {
+                filteredItems.map((item, i) => {
                   const overdue = isOverdue(item.dueDate);
                   return (
                     <tr key={item._id} className={`hover:bg-slate-50 ${overdue ? "bg-red-50/50" : ""}`}>

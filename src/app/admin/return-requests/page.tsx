@@ -31,8 +31,12 @@ function formatDateTime(date?: Date) {
   });
 }
 
-export default async function AdminReturnRequestsPage() {
+export default async function AdminReturnRequestsPage(
+  props: { searchParams?: Promise<{ q?: string }> }
+) {
   const user = await requireAdminUser();
+  const searchParams = await props.searchParams;
+  const q = searchParams?.q?.toLowerCase() || "";
 
   const labId = typeof user.assignedLab === "object" && user.assignedLab !== null
     ? String((user.assignedLab as { _id: string })._id)
@@ -47,18 +51,46 @@ export default async function AdminReturnRequestsPage() {
     .sort({ returnRequestedAt: -1 })
     .lean<ReturnRequest[]>();
 
-  const newReturnRequests = requests.filter(r => r.status === "return_requested");
-  const waitingDropoff = requests.filter(r => r.status === "approved_for_dropoff");
+  const filteredRequests = requests.filter(r => {
+    if (!q) return true;
+    const sName = r.student?.name?.toLowerCase() || "";
+    const sEmail = r.student?.email?.toLowerCase() || "";
+    const eName = r.equipment?.name?.toLowerCase() || "";
+    return sName.includes(q) || sEmail.includes(q) || eName.includes(q);
+  });
+
+  const newReturnRequests = filteredRequests.filter(r => r.status === "return_requested");
+  const waitingDropoff = filteredRequests.filter(r => r.status === "approved_for_dropoff");
 
   return (
     <section className="space-y-6">
-      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#319f9a]">
-          Return Requests
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[#1f2933]">
-          Manage Returns
-        </h1>
+      <div className="flex flex-col justify-between gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm md:flex-row md:items-end">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#319f9a]">
+            Return Requests
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[#1f2933]">
+            Manage Returns
+          </h1>
+        </div>
+        <form className="flex w-full flex-col gap-3 sm:flex-row xl:w-auto" action="/admin/return-requests">
+          <label className="flex flex-1 items-center gap-2 sm:min-w-[320px] xl:flex-none">
+            <span className="sr-only">Search</span>
+            <input
+              name="q"
+              type="search"
+              defaultValue={q}
+              placeholder="Search by student or equipment..."
+              className="h-11 min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-[#319f9a] focus:ring-2 focus:ring-[#319f9a]/20"
+            />
+          </label>
+          <button
+            type="submit"
+            className="rounded-md bg-[#022742] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#064463]"
+          >
+            Search
+          </button>
+        </form>
       </div>
 
       <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">

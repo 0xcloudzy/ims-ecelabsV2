@@ -162,29 +162,70 @@ export function AdminEquipmentTable({
       try {
         const data = event.target?.result;
         const workbook = XLSX.read(data, { type: "binary" });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        const rawJson = XLSX.utils.sheet_to_json<Record<string, string | number>>(worksheet);
+        // Find the "Non-Consumables" sheet or fallback to the first sheet
+        let sheetName = workbook.SheetNames.find(n => n.toLowerCase().includes("non-consumable")) || workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const rawJson = XLSX.utils.sheet_to_json<Record<string, string | number>>(worksheet, { defval: "" });
 
-        // Map expected columns (case-insensitive fallback)
-        const items = rawJson.map((row) => {
+        // First pass: build raw items from each row
+        const rawItems = rawJson.map((row) => {
           const getVal = (keys: string[]) => {
             const key = Object.keys(row).find((k) => keys.includes(k.toLowerCase().trim()));
             return key ? String(row[key] || "") : "";
           };
 
-          return {
-            name: getVal(["name", "equipment name", "item"]),
-            type: getVal(["type", "category", "equipment type"]),
-            quantityTotal: parseInt(getVal(["qty", "quantity", "total", "count"]), 10) || 0,
-            description: getVal(["description", "desc", "details"]),
-            link: getVal(["link", "url", "datasheet"]),
-          };
-        }).filter(item => item.name && item.type && item.quantityTotal > 0);
+          const name = getVal(["equipments/tools", "equipments/tools*", "name", "equipment name", "item"]);
+          const category = getVal(["category", "type", "equipment type"]);
+          // Default quantity to 1 when blank (most items in the sheet are individual units)
+          const qtyStr = getVal(["quantity", "qty", "total", "count"]);
+          const quantityTotal = qtyStr ? (parseInt(qtyStr, 10) || 1) : 1;
+          
+          const make = getVal(["make"]);
+          const modelVal = getVal(["model"]);
+          const additional = getVal(["additional resources"]);
+          const remarks = getVal(["remarks"]);
+          const faulty = getVal(["faulty, if any", "faulty"]);
+
+          // Build description from extra fields
+          const descParts: string[] = [];
+          if (make) descParts.push(`Make: ${make}`);
+          if (modelVal) descParts.push(`Model: ${modelVal}`);
+          if (additional) descParts.push(`Resources: ${additional}`);
+          if (remarks) descParts.push(`Remarks: ${remarks}`);
+          if (faulty) descParts.push(`Faulty: ${faulty}`);
+          const description = descParts.join(" | ");
+
+          // Try to extract a URL from additional resources or remarks
+          const urlRegex = /(https?:\/\/[^\s]+)/g;
+          let link = "";
+          const additionalMatches = additional.match(urlRegex);
+          const remarksMatches = remarks.match(urlRegex);
+          if (additionalMatches) link = additionalMatches[0];
+          else if (remarksMatches) link = remarksMatches[0];
+          else link = getVal(["link", "url", "datasheet"]);
+
+          return { name, category, quantityTotal, description, link };
+        });
+
+        // Second pass: "fill down" category from merged cells
+        // In Excel, merged cells only have a value in the first row — the rest are empty.
+        let lastCategory = "";
+        const items = rawItems
+          .map((item) => {
+            if (item.category) lastCategory = item.category;
+            return {
+              name: item.name,
+              type: lastCategory || "Uncategorized",
+              quantityTotal: item.quantityTotal,
+              description: item.description,
+              link: item.link,
+            };
+          })
+          .filter(item => item.name.trim() !== "");
 
         if (items.length === 0) {
           setBulkMode("error");
-          setBulkMessage("No valid items found. Ensure you have 'Name', 'Type', and 'Qty' columns.");
+          setBulkMessage("No valid items found. Ensure you have 'Equipments/Tools', 'Category', and 'Quantity' columns.");
           return;
         }
 
@@ -512,9 +553,9 @@ export function AdminEquipmentTable({
             {bulkMode === "selecting" && (
               <div className="mt-5 space-y-4">
                 <p className="text-sm text-slate-600">
-                  Upload an Excel (.xlsx) or CSV file containing your equipment. The file should have headers row with at least: <strong className="text-slate-800">Name</strong>, <strong className="text-slate-800">Type</strong>, and <strong className="text-slate-800">Qty</strong>.
+                  Upload an Excel (.xlsx) or CSV file containing your equipment.
                 </p>
-                <div className="rounded-lg border-2 border-dashed border-slate-300 p-8 text-center transition hover:border-[#319f9a] hover:bg-[#319f9a]/5">
+                <div className="relative rounded-lg border-2 border-dashed border-slate-300 p-8 text-center transition hover:border-[#319f9a] hover:bg-[#319f9a]/5">
                   <input
                     type="file"
                     accept=".xlsx, .xls, .csv"
