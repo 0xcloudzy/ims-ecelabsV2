@@ -16,6 +16,11 @@ export type CurrentAppUser = {
     department: string;
     programme: string;
     phoneNumber: string;
+    duesClearance?: {
+      isCleared: boolean;
+      clearedAt?: Date;
+      clearedBy?: string;
+    };
   };
   assignedLab?: string;
 };

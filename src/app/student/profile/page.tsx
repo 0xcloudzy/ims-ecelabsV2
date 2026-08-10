@@ -47,9 +47,15 @@ export default async function StudentProfilePage() {
           </div>
           <h2 className="mt-5 text-xl font-semibold text-[#1f2933]">{user.name}</h2>
           <p className="mt-1 text-sm text-slate-500">{user.email}</p>
-          <div className="mt-5 rounded-md border border-[#d3eeee] bg-[#f2fbfa] px-3 py-2 text-sm font-semibold text-[#247f7b]">
-            Active student account
-          </div>
+          {profile?.duesClearance?.isCleared ? (
+            <div className="mt-5 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
+              Graduation Clearance Granted
+            </div>
+          ) : (
+            <div className="mt-5 rounded-md border border-[#d3eeee] bg-[#f2fbfa] px-3 py-2 text-sm font-semibold text-[#247f7b]">
+              Active student account
+            </div>
+          )}
         </aside>
 
         <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">

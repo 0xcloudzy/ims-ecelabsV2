@@ -34,7 +34,8 @@ type EquipmentPageProps = {
 };
 
 export default async function StudentEquipmentPage({ searchParams }: EquipmentPageProps) {
-  await requireStudentUser();
+  const user = await requireStudentUser();
+  const isCleared = !!user.studentProfile?.duesClearance?.isCleared;
 
   const params = await searchParams;
   const query = params?.q?.trim() ?? "";
@@ -185,7 +186,7 @@ export default async function StudentEquipmentPage({ searchParams }: EquipmentPa
                       <span className="text-slate-400"> / {item.quantityTotal}</span>
                     </td>
                     <td className="px-4 py-4">
-                      <BorrowButton item={JSON.parse(JSON.stringify(item))} />
+                      <BorrowButton item={JSON.parse(JSON.stringify(item))} isCleared={isCleared} />
                     </td>
                   </tr>
                 ))

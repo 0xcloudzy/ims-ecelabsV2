@@ -37,6 +37,17 @@ const studentProfileSchema = new Schema(
       required: true,
       trim: true,
     },
+    duesClearance: {
+      isCleared: {
+        type: Boolean,
+        default: false,
+      },
+      clearedAt: Date,
+      clearedBy: {
+        type: Types.ObjectId,
+        ref: "User",
+      },
+    },
   },
   { _id: false },
 );

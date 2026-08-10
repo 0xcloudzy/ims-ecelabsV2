@@ -16,6 +16,13 @@ const borrowSchema = z.object({
 export async function POST(request: NextRequest) {
   const user = await requireStudentUser();
 
+  if (user.studentProfile?.duesClearance?.isCleared) {
+    return NextResponse.json(
+      { error: "Cannot borrow items: Your 'No Dues' clearance has already been granted." },
+      { status: 403 }
+    );
+  }
+
   await connectToDatabase();
 
   let body: unknown;

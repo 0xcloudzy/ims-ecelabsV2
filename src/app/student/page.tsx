@@ -108,6 +108,22 @@ export default async function StudentPage() {
         </div>
       </div>
 
+      {user.studentProfile?.duesClearance?.isCleared && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <svg className="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h3 className="font-semibold text-emerald-800">No Dues Clearance Granted</h3>
+              <p className="mt-1 text-sm text-emerald-700">
+                You have been cleared by an admin on {formatDate(user.studentProfile.duesClearance.clearedAt)}. You can no longer request equipment.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {statCards.map((card) => (
           <article key={card.valueKey} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
