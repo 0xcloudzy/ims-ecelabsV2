@@ -1,6 +1,7 @@
 import { Equipment } from "@/db/models/equipment";
 import { Lab } from "@/db/models/lab";
 import { requireStudentUser } from "@/lib/auth/current-user";
+import { BorrowButton } from "./borrow-button";
 import Link from "next/link";
 import type { Types } from "mongoose";
 
@@ -184,14 +185,7 @@ export default async function StudentEquipmentPage({ searchParams }: EquipmentPa
                       <span className="text-slate-400"> / {item.quantityTotal}</span>
                     </td>
                     <td className="px-4 py-4">
-                      <button
-                        type="button"
-                        disabled
-                        className="rounded-md bg-slate-200 px-3 py-2 text-sm font-semibold text-slate-500"
-                        title="Borrow request flow is the next stage."
-                      >
-                        Request
-                      </button>
+                      <BorrowButton item={JSON.parse(JSON.stringify(item))} />
                     </td>
                   </tr>
                 ))

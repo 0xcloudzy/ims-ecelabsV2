@@ -17,15 +17,17 @@ export default async function AdminDashboardPage() {
     totalEquipment,
     activeEquipment,
     pendingBorrows,
+    waitingPickup,
+    currentlyIssued,
     pendingReturns,
-    activeBorrows,
     completedReturns,
   ] = await Promise.all([
     Equipment.countDocuments({ lab: labId, isDeleted: false }),
     Equipment.countDocuments({ lab: labId, isDeleted: false, isActive: true }),
     Transaction.countDocuments({ lab: labId, status: "requested" }),
-    Transaction.countDocuments({ lab: labId, status: "returning" }),
-    Transaction.countDocuments({ lab: labId, status: "accepted" }),
+    Transaction.countDocuments({ lab: labId, status: "approved_for_pickup" }),
+    Transaction.countDocuments({ lab: labId, status: "issued" }),
+    Transaction.countDocuments({ lab: labId, status: { $in: ["return_requested", "approved_for_dropoff"] } }),
     Transaction.countDocuments({ lab: labId, status: "completed" }),
   ]);
 
@@ -33,8 +35,9 @@ export default async function AdminDashboardPage() {
     { label: "Total Equipment", value: totalEquipment, tone: "text-[#022742]" },
     { label: "Active Equipment", value: activeEquipment, tone: "text-emerald-600" },
     { label: "Pending Borrow Requests", value: pendingBorrows, tone: "text-amber-600" },
-    { label: "Pending Return Requests", value: pendingReturns, tone: "text-violet-600" },
-    { label: "Active Borrows", value: activeBorrows, tone: "text-blue-600" },
+    { label: "Waiting for Pickup", value: waitingPickup, tone: "text-blue-600" },
+    { label: "Currently Issued", value: currentlyIssued, tone: "text-[#319f9a]" },
+    { label: "Pending Returns", value: pendingReturns, tone: "text-violet-600" },
     { label: "Completed Returns", value: completedReturns, tone: "text-slate-600" },
   ];
 

@@ -2,10 +2,12 @@ import { model, models, Schema, Types } from "mongoose";
 
 export const TRANSACTION_STATUSES = [
   "requested",
-  "declined",
-  "accepted",
-  "returning",
+  "approved_for_pickup",
+  "issued",
+  "return_requested",
+  "approved_for_dropoff",
   "completed",
+  "declined",
   "cancelled",
 ] as const;
 
@@ -44,10 +46,18 @@ const transactionSchema = new Schema(
       required: true,
       default: Date.now,
     },
+    requestedDays: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
     dueDate: {
       type: Date,
-      required: true,
+      // No longer required on creation; calculated when 'issued'
     },
+    pickupTime: Date,
+    dropoffTime: Date,
+    issuedAt: Date,
     decidedAt: Date,
     returnRequestedAt: Date,
     returnedAt: Date,

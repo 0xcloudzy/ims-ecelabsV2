@@ -40,16 +40,24 @@ function formatDate(date?: Date) {
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     requested: "border-amber-200 bg-amber-50 text-amber-700",
-    accepted: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    returning: "border-violet-200 bg-violet-50 text-violet-700",
+    approved_for_pickup: "border-blue-200 bg-blue-50 text-blue-700",
+    issued: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    return_requested: "border-violet-200 bg-violet-50 text-violet-700",
+    approved_for_dropoff: "border-blue-200 bg-blue-50 text-blue-700",
     completed: "border-slate-200 bg-slate-50 text-slate-700",
+    declined: "border-red-200 bg-red-50 text-red-700",
+    cancelled: "border-slate-200 bg-slate-100 text-slate-600",
   };
 
   const label: Record<string, string> = {
     requested: "Waiting for Approval",
-    accepted: "Equipped",
-    returning: "Return Requested",
+    approved_for_pickup: "Waiting for Pickup",
+    issued: "Equipped",
+    return_requested: "Return Requested",
+    approved_for_dropoff: "Waiting for Dropoff",
     completed: "Returned",
+    declined: "Declined",
+    cancelled: "Cancelled",
   };
 
   return (
@@ -63,11 +71,11 @@ export default async function StudentPage() {
   const user = await requireStudentUser();
 
   const [borrowed, pending, returning, completed, activeTransactions, returnedTransactions] = await Promise.all([
-    Transaction.countDocuments({ student: user._id, status: "accepted" }),
-    Transaction.countDocuments({ student: user._id, status: "requested" }),
-    Transaction.countDocuments({ student: user._id, status: "returning" }),
+    Transaction.countDocuments({ student: user._id, status: "issued" }),
+    Transaction.countDocuments({ student: user._id, status: { $in: ["requested", "approved_for_pickup"] } }),
+    Transaction.countDocuments({ student: user._id, status: { $in: ["return_requested", "approved_for_dropoff"] } }),
     Transaction.countDocuments({ student: user._id, status: "completed" }),
-    Transaction.find({ student: user._id, status: { $in: ["requested", "accepted", "returning"] } })
+    Transaction.find({ student: user._id, status: { $in: ["requested", "approved_for_pickup", "issued", "return_requested", "approved_for_dropoff"] } })
       .populate("equipment", "name")
       .populate({ path: "lab", model: Lab, select: "name code" })
       .sort({ requestedAt: -1 })
@@ -109,9 +117,9 @@ export default async function StudentPage() {
         ))}
       </div>
 
-      <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-5 py-4">
-          <h2 className="text-xl font-semibold text-[#319f9a]">Equipped Items</h2>
+          <h2 className="text-xl font-semibold text-[#022742]">Active Requests</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-left text-sm">
@@ -129,7 +137,7 @@ export default async function StudentPage() {
               {activeTransactions.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-sm text-slate-500">
-                    No equipped or pending items yet.
+                    No active requests or equipped items.
                   </td>
                 </tr>
               ) : (
@@ -141,7 +149,9 @@ export default async function StudentPage() {
                     </td>
                     <td className="px-4 py-4 text-slate-600">{transaction.lab?.code ?? "-"}</td>
                     <td className="px-4 py-4 text-slate-600">{transaction.quantity}</td>
-                    <td className="px-4 py-4 text-slate-600">{formatDate(transaction.dueDate)}</td>
+                    <td className="px-4 py-4 text-slate-600">
+                      {transaction.dueDate ? formatDate(transaction.dueDate) : "TBD"}
+                    </td>
                     <td className="px-4 py-4"><StatusBadge status={transaction.status} /></td>
                   </tr>
                 ))
@@ -149,7 +159,7 @@ export default async function StudentPage() {
             </tbody>
           </table>
         </div>
-      </section>
+      </div>
 
       <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-5 py-4">

@@ -10,6 +10,7 @@ const navigationItems = [
   { href: "/admin/equipment", label: "Equipment", icon: "equipment" },
   { href: "/admin/borrow-requests", label: "Borrow Requests", icon: "borrow" },
   { href: "/admin/return-requests", label: "Return Requests", icon: "return" },
+  { href: "/admin/issued-items", label: "Issued Items", icon: "issued" },
   { href: "/admin/history", label: "History", icon: "history" },
   { href: "/admin/students", label: "Students", icon: "students" },
   { href: "/admin/logs", label: "Inventory Logs", icon: "logs" },

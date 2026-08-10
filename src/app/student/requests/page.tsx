@@ -1,6 +1,7 @@
 import { Lab } from "@/db/models/lab";
 import { Transaction } from "@/db/models/transaction";
 import { requireStudentUser } from "@/lib/auth/current-user";
+import { ReturnButton } from "./return-button";
 
 type RequestListItem = {
   _id: string;
@@ -20,8 +21,10 @@ type RequestListItem = {
 
 const statusStyles: Record<string, string> = {
   requested: "border-amber-200 bg-amber-50 text-amber-700",
-  accepted: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  returning: "border-violet-200 bg-violet-50 text-violet-700",
+  approved_for_pickup: "border-blue-200 bg-blue-50 text-blue-700",
+  issued: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  return_requested: "border-violet-200 bg-violet-50 text-violet-700",
+  approved_for_dropoff: "border-blue-200 bg-blue-50 text-blue-700",
   completed: "border-slate-200 bg-slate-50 text-slate-700",
   declined: "border-red-200 bg-red-50 text-red-700",
   cancelled: "border-slate-200 bg-slate-100 text-slate-600",
@@ -29,8 +32,10 @@ const statusStyles: Record<string, string> = {
 
 const statusLabels: Record<string, string> = {
   requested: "Waiting for Approval",
-  accepted: "Equipped",
-  returning: "Return Requested",
+  approved_for_pickup: "Waiting for Pickup",
+  issued: "Equipped",
+  return_requested: "Return Requested",
+  approved_for_dropoff: "Waiting for Dropoff",
   completed: "Returned",
   declined: "Declined",
   cancelled: "Cancelled",
@@ -70,7 +75,7 @@ export default async function StudentRequestsPage() {
   const user = await requireStudentUser();
 
   const [activeRequests, closedRequests] = await Promise.all([
-    Transaction.find({ student: user._id, status: { $in: ["requested", "accepted", "returning"] } })
+    Transaction.find({ student: user._id, status: { $in: ["requested", "approved_for_pickup", "issued", "return_requested", "approved_for_dropoff"] } })
       .populate("equipment", "name")
       .populate({ path: "lab", model: Lab, select: "name code" })
       .sort({ requestedAt: -1 })
@@ -126,9 +131,17 @@ export default async function StudentRequestsPage() {
                     <td className="px-4 py-4 text-slate-600">{request.lab?.code ?? "-"}</td>
                     <td className="px-4 py-4 text-slate-600">{request.quantity}</td>
                     <td className="px-4 py-4 text-slate-600">{formatDate(request.requestedAt)}</td>
-                    <td className="px-4 py-4 text-slate-600">{formatDate(request.dueDate)}</td>
+                    <td className="px-4 py-4 text-slate-600">
+                      {request.dueDate ? formatDate(request.dueDate) : "TBD"}
+                    </td>
                     <td className="px-4 py-4"><StatusBadge status={request.status} /></td>
-                    <td className="px-4 py-4 text-slate-400">-</td>
+                    <td className="px-4 py-4">
+                      {request.status === "issued" ? (
+                        <ReturnButton transactionId={JSON.parse(JSON.stringify(request._id))} />
+                      ) : (
+                        <span className="text-xs text-slate-400">—</span>
+                      )}
+                    </td>
                   </tr>
                 ))
               )}

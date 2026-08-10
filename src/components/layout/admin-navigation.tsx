@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 type NavigationItem = {
   href: string;
   label: string;
-  icon: "dashboard" | "equipment" | "borrow" | "return" | "history" | "students" | "logs";
+  icon: "dashboard" | "equipment" | "borrow" | "return" | "issued" | "history" | "students" | "logs";
 };
 
 type AdminNavigationProps = {
@@ -56,6 +56,16 @@ function NavIcon({ icon }: { icon: NavigationItem["icon"] }) {
       <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24" fill="none">
         <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
         <path d="M12 7v5l3 3" stroke="currentColor" strokeWidth="1.8" />
+      </svg>
+    );
+  }
+
+  if (icon === "issued") {
+    return (
+      <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24" fill="none">
+        <path d="M9 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" stroke="currentColor" strokeWidth="1.8" />
+        <path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2Z" stroke="currentColor" strokeWidth="1.8" />
+        <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.8" />
       </svg>
     );
   }
