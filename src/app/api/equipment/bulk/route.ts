@@ -13,6 +13,7 @@ const bulkEquipmentSchema = z.object({
       type: z.string().trim().min(1),
       quantityTotal: z.coerce.number().int().min(1),
       link: z.string().trim().url().optional().or(z.literal("")),
+      isConsumable: z.boolean().optional().default(false),
     })
   ).min(1, "No valid items found to upload"),
 });
@@ -101,6 +102,7 @@ export async function POST(request: NextRequest) {
         quantityTotal: item.quantityTotal,
         quantityAvailable: item.quantityTotal,
         link: item.link || undefined,
+        isConsumable: item.isConsumable,
         lab: labId,
         isActive: true,
         isDeleted: false,

@@ -13,6 +13,7 @@ type EquipmentItem = {
   quantityTotal: number;
   quantityAvailable: number;
   isActive: boolean;
+  isConsumable?: boolean;
   lab: {
     _id: string;
     code: string;
@@ -162,66 +163,106 @@ export function AdminEquipmentTable({
       try {
         const data = event.target?.result;
         const workbook = XLSX.read(data, { type: "binary" });
-        // Find the "Non-Consumables" sheet or fallback to the first sheet
-        let sheetName = workbook.SheetNames.find(n => n.toLowerCase().includes("non-consumable")) || workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const rawJson = XLSX.utils.sheet_to_json<Record<string, string | number>>(worksheet, { defval: "" });
 
-        // First pass: build raw items from each row
-        const rawItems = rawJson.map((row) => {
-          const getVal = (keys: string[]) => {
-            const key = Object.keys(row).find((k) => keys.includes(k.toLowerCase().trim()));
-            return key ? String(row[key] || "") : "";
-          };
+        // ── Helper to extract a value by trying multiple possible header names ──
+        const getVal = (row: Record<string, string | number>, keys: string[]) => {
+          const key = Object.keys(row).find((k) => keys.includes(k.toLowerCase().trim()));
+          return key ? String(row[key] || "") : "";
+        };
 
-          const name = getVal(["equipments/tools", "equipments/tools*", "name", "equipment name", "item"]);
-          const category = getVal(["category", "type", "equipment type"]);
-          // Default quantity to 1 when blank (most items in the sheet are individual units)
-          const qtyStr = getVal(["quantity", "qty", "total", "count"]);
-          const quantityTotal = qtyStr ? (parseInt(qtyStr, 10) || 1) : 1;
+        // ── Parse Non-Consumables sheet ──
+        const ncSheetName = workbook.SheetNames.find(n => n.toLowerCase().includes("non-consumable"));
+        let ncItems: { name: string; category: string; quantityTotal: number; description: string; link: string; isConsumable: boolean }[] = [];
+        
+        if (ncSheetName) {
+          const ws = workbook.Sheets[ncSheetName];
+          const rawJson = XLSX.utils.sheet_to_json<Record<string, string | number>>(ws, { defval: "" });
           
-          const make = getVal(["make"]);
-          const modelVal = getVal(["model"]);
-          const additional = getVal(["additional resources"]);
-          const remarks = getVal(["remarks"]);
-          const faulty = getVal(["faulty, if any", "faulty"]);
+          ncItems = rawJson.map((row) => {
+            const name = getVal(row, ["equipments/tools", "equipments/tools*", "name", "equipment name", "item"]);
+            const category = getVal(row, ["category", "type", "equipment type"]);
+            const qtyStr = getVal(row, ["quantity", "qty", "total", "count"]);
+            const quantityTotal = qtyStr ? (parseInt(qtyStr, 10) || 1) : 1;
 
-          // Build description from extra fields
-          const descParts: string[] = [];
-          if (make) descParts.push(`Make: ${make}`);
-          if (modelVal) descParts.push(`Model: ${modelVal}`);
-          if (additional) descParts.push(`Resources: ${additional}`);
-          if (remarks) descParts.push(`Remarks: ${remarks}`);
-          if (faulty) descParts.push(`Faulty: ${faulty}`);
-          const description = descParts.join(" | ");
+            const make = getVal(row, ["make"]);
+            const modelVal = getVal(row, ["model"]);
+            const additional = getVal(row, ["additional resources"]);
+            const remarks = getVal(row, ["remarks"]);
+            const faulty = getVal(row, ["faulty, if any", "faulty"]);
 
-          // Try to extract a URL from additional resources or remarks
-          const urlRegex = /(https?:\/\/[^\s]+)/g;
-          let link = "";
-          const additionalMatches = additional.match(urlRegex);
-          const remarksMatches = remarks.match(urlRegex);
-          if (additionalMatches) link = additionalMatches[0];
-          else if (remarksMatches) link = remarksMatches[0];
-          else link = getVal(["link", "url", "datasheet"]);
+            const descParts: string[] = [];
+            if (make) descParts.push(`Make: ${make}`);
+            if (modelVal) descParts.push(`Model: ${modelVal}`);
+            if (additional) descParts.push(`Resources: ${additional}`);
+            if (remarks) descParts.push(`Remarks: ${remarks}`);
+            if (faulty) descParts.push(`Faulty: ${faulty}`);
+            const description = descParts.join(" | ");
 
-          return { name, category, quantityTotal, description, link };
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            let link = "";
+            const additionalMatches = additional.match(urlRegex);
+            const remarksMatches = remarks.match(urlRegex);
+            if (additionalMatches) link = additionalMatches[0];
+            else if (remarksMatches) link = remarksMatches[0];
+            else link = getVal(row, ["link", "url", "datasheet"]);
+
+            return { name, category, quantityTotal, description, link, isConsumable: false };
+          });
+        }
+
+        // ── Parse Consumables sheet ──
+        const cSheetName = workbook.SheetNames.find(n => {
+          const lower = n.toLowerCase();
+          return lower.includes("consumable") && !lower.includes("non-consumable");
         });
+        let cItems: { name: string; category: string; quantityTotal: number; description: string; link: string; isConsumable: boolean }[] = [];
 
-        // Second pass: "fill down" category from merged cells
-        // In Excel, merged cells only have a value in the first row — the rest are empty.
-        let lastCategory = "";
-        const items = rawItems
-          .map((item) => {
-            if (item.category) lastCategory = item.category;
-            return {
-              name: item.name,
-              type: lastCategory || "Uncategorized",
-              quantityTotal: item.quantityTotal,
-              description: item.description,
-              link: item.link,
-            };
-          })
-          .filter(item => item.name.trim() !== "");
+        if (cSheetName) {
+          const ws = workbook.Sheets[cSheetName];
+          const rawJson = XLSX.utils.sheet_to_json<Record<string, string | number>>(ws, { defval: "" });
+
+          cItems = rawJson.map((row) => {
+            const name = getVal(row, ["equipments/tools", "equipments/tools*", "name", "equipment name", "item"]);
+            const category = getVal(row, ["category", "type", "equipment type"]);
+            const qtyStr = getVal(row, ["quantity", "qty", "total", "count"]);
+            const quantityTotal = qtyStr ? (parseInt(qtyStr, 10) || 1) : 1;
+
+            const currentStatus = getVal(row, ["current status", "status"]);
+            const remarks = getVal(row, ["remarks"]);
+            const poDate = getVal(row, ["date of p.o.", "date of po", "po date"]);
+
+            const descParts: string[] = [];
+            if (currentStatus) descParts.push(`Status: ${currentStatus}`);
+            if (remarks) descParts.push(`Remarks: ${remarks}`);
+            if (poDate) descParts.push(`P.O. Date: ${poDate}`);
+            const description = descParts.join(" | ");
+
+            return { name, category, quantityTotal, description, link: "", isConsumable: true };
+          });
+        }
+
+        // ── Combine and fill-down categories for both sets ──
+        function fillDownCategories(rawItems: typeof ncItems) {
+          let lastCategory = "";
+          return rawItems
+            .map((item) => {
+              if (item.category) lastCategory = item.category;
+              return {
+                name: item.name,
+                type: lastCategory || "Uncategorized",
+                quantityTotal: item.quantityTotal,
+                description: item.description,
+                link: item.link,
+                isConsumable: item.isConsumable,
+              };
+            })
+            .filter(item => item.name.trim() !== "");
+        }
+
+        const items = [
+          ...fillDownCategories(ncItems),
+          ...fillDownCategories(cItems),
+        ];
 
         if (items.length === 0) {
           setBulkMode("error");
@@ -324,16 +365,16 @@ export function AdminEquipmentTable({
       {/* Equipment Table */}
       <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-left text-sm">
+          <table className="w-full min-w-[700px] text-left text-sm">
             <thead className="bg-[#022742] text-white">
               <tr>
-                <th className="w-12 px-4 py-3 font-semibold">#</th>
+                <th className="px-4 py-3 font-semibold">#</th>
                 <th className="px-4 py-3 font-semibold">Name</th>
                 <th className="px-4 py-3 font-semibold">Description</th>
-                <th className="w-36 px-4 py-3 font-semibold">Type</th>
-                <th className="w-28 px-4 py-3 font-semibold">Qty</th>
-                <th className="w-24 px-4 py-3 font-semibold">Status</th>
-                <th className="w-44 px-4 py-3 font-semibold">Actions</th>
+                <th className="px-4 py-3 font-semibold">Type</th>
+                <th className="px-4 py-3 font-semibold">Qty</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -350,12 +391,19 @@ export function AdminEquipmentTable({
                     className={`hover:bg-slate-50 ${isPending ? "opacity-60" : ""}`}
                   >
                     <td className="px-4 py-4 text-slate-500">{index + 1}</td>
-                    <td className="px-4 py-4">
-                      <div className="font-semibold text-slate-900">{item.name}</div>
-                      <div className="mt-1 flex items-center gap-2">
+                    <td className="px-4 py-4 max-w-[16rem]">
+                      <div className="font-semibold text-slate-900 break-words">
+                        {item.name}
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[#319f9a]">
                           {item.lab.code}
                         </span>
+                        {item.isConsumable && (
+                          <span className="inline-flex rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-orange-600">
+                            Consumable
+                          </span>
+                        )}
                         {item.link && (
                           <>
                             <span className="text-slate-300">•</span>
@@ -371,8 +419,10 @@ export function AdminEquipmentTable({
                         )}
                       </div>
                     </td>
-                    <td className="max-w-xs px-4 py-4 text-slate-600 leading-relaxed">
-                      {item.description || "—"}
+                    <td className="px-4 py-4 max-w-sm">
+                      <div className="max-h-20 overflow-y-auto pr-2 text-xs leading-relaxed text-slate-600 custom-scrollbar">
+                        {item.description || "—"}
+                      </div>
                     </td>
                     <td className="px-4 py-4 text-slate-600">{item.type}</td>
                     <td className="px-4 py-4">

@@ -50,6 +50,10 @@ const equipmentSchema = new Schema(
       required: true,
       default: false,
     },
+    isConsumable: {
+      type: Boolean,
+      default: false,
+    },
     createdBy: {
       type: Types.ObjectId,
       ref: "User",

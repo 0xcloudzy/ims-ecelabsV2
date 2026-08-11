@@ -12,6 +12,7 @@ type EquipmentItem = {
   quantityTotal: number;
   quantityAvailable: number;
   isActive: boolean;
+  isConsumable?: boolean;
   lab: {
     _id: string;
     code: string;

@@ -1,7 +1,17 @@
 import { connectToDatabase } from "@/db/connect";
 import { Equipment } from "@/db/models/equipment";
+import { Lab } from "@/db/models/lab";
 import { Transaction } from "@/db/models/transaction";
+import { User } from "@/db/models/user";
 import { requireAdminUser } from "@/lib/auth/current-user";
+import { sendEmail } from "@/lib/email/send-email";
+import {
+  pickupApprovedEmail,
+  requestDeclinedEmail,
+  equipmentIssuedEmail,
+  dropoffApprovedEmail,
+  returnCompletedEmail,
+} from "@/lib/email/templates";
 import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -14,6 +24,13 @@ const actionSchema = z.object({
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
+
+function fmtDate(d: Date) {
+  return new Date(d).toLocaleString("en-IN", {
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+}
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   const user = await requireAdminUser();
@@ -53,6 +70,21 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Not authorized for this lab" }, { status: 403 });
   }
 
+  // Helper to get context for emails
+  async function getEmailContext() {
+    const student = await User.findById(transaction.student).select("name email").lean<{ name: string; email: string }>();
+    const equip = await Equipment.findById(transaction.equipment).select("name").lean<{ name: string }>();
+    const lab = await Lab.findById(transaction.lab).select("name code").lean<{ name: string; code: string }>();
+    return {
+      studentName: student?.name || "Student",
+      studentEmail: student?.email || "",
+      equipmentName: equip?.name || "Equipment",
+      labName: lab ? `${lab.name} (${lab.code.toUpperCase()})` : "Lab",
+      adminName: user.name || "Lab Admin",
+      adminEmail: user.email || "",
+    };
+  }
+
   if (action === "approve_for_pickup") {
     if (transaction.status !== "requested") {
       return NextResponse.json({ error: "Can only approve pending requests" }, { status: 400 });
@@ -76,6 +108,15 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (comment) transaction.adminComment = comment;
     await transaction.save();
 
+    // Send email
+    const ctx = await getEmailContext();
+    const email = pickupApprovedEmail({
+      ...ctx,
+      quantity: transaction.quantity,
+      pickupTime: fmtDate(transaction.pickupTime),
+    });
+    sendEmail(ctx.studentEmail, email.subject, email.html);
+
     return NextResponse.json({ success: true, status: "approved_for_pickup" });
   }
 
@@ -93,6 +134,16 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     if (comment) transaction.adminComment = comment;
     await transaction.save();
+
+    // Send email
+    const ctx = await getEmailContext();
+    const email = equipmentIssuedEmail({
+      ...ctx,
+      quantity: transaction.quantity,
+      issuedAt: fmtDate(now),
+      dueDate: fmtDate(dueDate),
+    });
+    sendEmail(ctx.studentEmail, email.subject, email.html);
 
     return NextResponse.json({ success: true, status: "issued" });
   }
@@ -117,6 +168,15 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (comment) transaction.adminComment = comment;
     await transaction.save();
 
+    // Send email
+    const ctx = await getEmailContext();
+    const email = requestDeclinedEmail({
+      ...ctx,
+      quantity: transaction.quantity,
+      reason: comment,
+    });
+    sendEmail(ctx.studentEmail, email.subject, email.html);
+
     return NextResponse.json({ success: true, status: "declined" });
   }
 
@@ -132,6 +192,15 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     transaction.dropoffTime = new Date(timeSlot);
     if (comment) transaction.adminComment = comment;
     await transaction.save();
+
+    // Send email
+    const ctx = await getEmailContext();
+    const email = dropoffApprovedEmail({
+      ...ctx,
+      quantity: transaction.quantity,
+      dropoffTime: fmtDate(transaction.dropoffTime),
+    });
+    sendEmail(ctx.studentEmail, email.subject, email.html);
 
     return NextResponse.json({ success: true, status: "approved_for_dropoff" });
   }
@@ -149,10 +218,20 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
 
     transaction.status = "completed";
-    transaction.returnedAt = new Date();
+    const now = new Date();
+    transaction.returnedAt = now;
     transaction.decidedBy = user._id;
     if (comment) transaction.adminComment = comment;
     await transaction.save();
+
+    // Send email
+    const ctx = await getEmailContext();
+    const email = returnCompletedEmail({
+      ...ctx,
+      quantity: transaction.quantity,
+      returnedAt: fmtDate(now),
+    });
+    sendEmail(ctx.studentEmail, email.subject, email.html);
 
     return NextResponse.json({ success: true, status: "completed" });
   }
